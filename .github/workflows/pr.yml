@@ -1,0 +1,94 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, dom, filter, gd, json
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-8.4-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-8.4-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Check if PHPStan binary exists
+      run: |
+        if [ ! -f "vendor/bin/phpstan" ]; then
+          echo "❌ PHPStan binary not found"
+          exit 1
+        fi
+        echo "✅ PHPStan binary found"
+
+    - name: Run tests with coverage
+      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+
+    - name: Run PHPStan analysis
+      run: vendor/bin/phpstan analyse --level=9 src/ --error-format=github
+
+    - name: Check code style (dry-run)
+      run: |
+        if ! composer cs-check; then
+          echo "❌ Code style issues found. Run 'composer cs-fix' to fix them."
+          exit 1
+        fi
+        echo "✅ Code style is compliant"
+
+    - name: Validate composer.json
+      run: composer validate --strict
+
+    - name: Check for security vulnerabilities
+      run: composer audit
+
+    - name: PR Summary Comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const phpFiles = files.filter(file => file.filename.endsWith('.php'));
+          const testFiles = files.filter(file => file.filename.includes('test'));
+          
+          const summary = `## 🔍 PR Analysis Summary
+          
+          - **PHP files changed**: ${phpFiles.length}
+          - **Test files changed**: ${testFiles.length}
+          - **Total files**: ${files.length}
+          
+          ### ✅ Checks Passed
+          - Code style validation
+          - PHPStan level 9 analysis
+          - Unit tests
+          - Composer validation
+          - Security audit
+          
+          All quality checks have passed! 🎉`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
