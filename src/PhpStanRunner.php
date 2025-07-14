@@ -76,17 +76,13 @@ class PhpStanRunner
      */
     private function parsePhpStanOutput(string $output): array
     {
-        $decoded = json_decode($output, true);
+        $decoded = json_decode($output, false, 512, JSON_THROW_ON_ERROR);
 
-        if (JSON_ERROR_NONE !== json_last_error()) {
-            throw new \RuntimeException('Failed to parse PHPStan JSON output: '.json_last_error_msg());
-        }
-
-        if (!is_array($decoded)) {
+        if (!$decoded instanceof \stdClass) {
             throw new \RuntimeException('Invalid PHPStan output format');
         }
 
-        return $decoded; // @phpstan-ignore-line
+        return (array) $decoded;
     }
 
     /**

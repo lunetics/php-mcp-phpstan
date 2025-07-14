@@ -39,14 +39,23 @@ class Test {
         try {
             $result = $this->service->analyzeCode($tempFile);
 
-            // Should return analysis results structure
+            // Should return MCP dual structure format
             $this->assertIsArray($result);
+            $this->assertArrayHasKey('content', $result);
+            $this->assertArrayHasKey('summary', $result);
+            $this->assertArrayHasKey('errors', $result);
+            $this->assertArrayHasKey('files', $result);
 
-            // If there are errors, check structure
-            if (isset($result['files'])) {
-                $this->assertArrayHasKey('files', $result);
-                $this->assertArrayHasKey('totalErrors', $result);
-            }
+            // Test MCP content structure
+            $this->assertIsArray($result['content']);
+            $this->assertCount(1, $result['content']);
+            $this->assertEquals('text', $result['content'][0]['type']);
+            $this->assertIsString($result['content'][0]['text']);
+
+            // Test summary structure
+            $this->assertArrayHasKey('total_errors', $result['summary']);
+            $this->assertArrayHasKey('status', $result['summary']);
+            $this->assertArrayHasKey('level', $result['summary']);
         } finally {
             unlink($tempFile);
         }
