@@ -7,7 +7,7 @@ namespace PhpMcp\PhpStan;
 use Symfony\Component\Process\Process;
 
 /**
- * Handles PHPStan execution and JSON output parsing
+ * Handles PHPStan execution and JSON output parsing.
  */
 class PhpStanRunner
 {
@@ -21,7 +21,9 @@ class PhpStanRunner
     }
 
     /**
-     * Execute PHPStan analysis on the given path
+     * Execute PHPStan analysis on the given path.
+     *
+     * @return array<string, mixed>
      */
     public function analyze(string $path): array
     {
@@ -31,16 +33,16 @@ class PhpStanRunner
             '--error-format=prettyJson',
             '--level=max',
             '--no-progress',
-            $path
+            $path,
         ];
 
         $process = new Process($command);
         $process->setTimeout($this->timeoutSeconds);
-        
+
         try {
             $process->run();
         } catch (\Exception $e) {
-            throw new \RuntimeException("Failed to execute PHPStan: " . $e->getMessage());
+            throw new \RuntimeException('Failed to execute PHPStan: '.$e->getMessage());
         }
 
         // PHPStan returns exit code > 0 when errors are found, which is expected
@@ -49,7 +51,7 @@ class PhpStanRunner
 
         // Check for actual execution errors (not analysis errors)
         if ($process->getExitCode() > 2) {
-            throw new \RuntimeException("PHPStan execution failed: " . $errorOutput);
+            throw new \RuntimeException('PHPStan execution failed: '.$errorOutput);
         }
 
         if (empty($output)) {
@@ -57,10 +59,10 @@ class PhpStanRunner
             return [
                 'totals' => [
                     'errors' => 0,
-                    'file_errors' => 0
+                    'file_errors' => 0,
                 ],
                 'files' => [],
-                'errors' => []
+                'errors' => [],
             ];
         }
 
@@ -68,42 +70,40 @@ class PhpStanRunner
     }
 
     /**
-     * Parse PHPStan JSON output
+     * Parse PHPStan JSON output.
+     *
+     * @return array<string, mixed>
      */
     private function parsePhpStanOutput(string $output): array
     {
-        $decoded = json_decode($output, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException("Failed to parse PHPStan JSON output: " . json_last_error_msg());
+        $decoded = json_decode($output, false, 512, JSON_THROW_ON_ERROR);
+
+        if (!$decoded instanceof \stdClass) {
+            throw new \RuntimeException('Invalid PHPStan output format');
         }
 
-        if (!is_array($decoded)) {
-            throw new \RuntimeException("Invalid PHPStan output format");
-        }
-
-        return $decoded;
+        return (array) $decoded;
     }
 
     /**
-     * Check if PHPStan binary is available
+     * Check if PHPStan binary is available.
      */
     public function isAvailable(): bool
     {
         $process = new Process([$this->phpStanBinary, '--version']);
         $process->run();
-        
+
         return $process->isSuccessful();
     }
 
     /**
-     * Get PHPStan version
+     * Get PHPStan version.
      */
     public function getVersion(): ?string
     {
         $process = new Process([$this->phpStanBinary, '--version']);
         $process->run();
-        
+
         if (!$process->isSuccessful()) {
             return null;
         }
