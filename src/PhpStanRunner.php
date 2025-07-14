@@ -86,7 +86,7 @@ class PhpStanRunner
             throw new \RuntimeException('Invalid PHPStan output format');
         }
 
-        /* @var array<string, mixed> $decoded */
+        /** @var array<string, mixed> $decoded */
         return $decoded;
     }
 
