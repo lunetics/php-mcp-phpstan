@@ -38,7 +38,7 @@ class ResponseMapper
     /**
      * Map a single PHPStan error message to enhanced MCP error format.
      *
-     * @param array<string, mixed> $message
+     * @param array<mixed, mixed> $message
      *
      * @return array<string, mixed>
      */
@@ -62,7 +62,7 @@ class ResponseMapper
     /**
      * Map PHPStan severity/level to standardized severity based on identifier patterns.
      *
-     * @param array<string, mixed> $message
+     * @param array<mixed, mixed> $message
      */
     private function mapSeverity(array $message): string
     {
@@ -184,8 +184,10 @@ class ResponseMapper
                     if (is_object($message)) {
                         $message = (array) $message;
                     }
-                    /* @var array<string, mixed> $message */
-                    $errors[] = $this->mapError($message, (string) $filePath);
+                    if (is_array($message)) {
+                        /* @var array<string, mixed> $message */
+                        $errors[] = $this->mapError($message, (string) $filePath);
+                    }
                 }
             }
         }
@@ -235,8 +237,10 @@ class ResponseMapper
                     if (is_object($message)) {
                         $message = (array) $message;
                     }
-                    /* @var array<string, mixed> $message */
-                    $messages[] = $this->mapError($message, (string) $filePath);
+                    if (is_array($message)) {
+                        /* @var array<string, mixed> $message */
+                        $messages[] = $this->mapError($message, (string) $filePath);
+                    }
                 }
             }
 
