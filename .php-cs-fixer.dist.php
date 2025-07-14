@@ -9,6 +9,7 @@ $finder = PhpCsFixer\Finder::create()
 
 $config = new PhpCsFixer\Config();
 return $config
+    ->setRiskyAllowed(true)
     ->setRules([
         '@Symfony' => true,
         '@DoctrineAnnotation' => true,

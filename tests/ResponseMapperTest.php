@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhpMcp\PhpStan\Tests;
 
-use PHPUnit\Framework\TestCase;
 use PhpMcp\PhpStan\ResponseMapper;
+use PHPUnit\Framework\TestCase;
 
 class ResponseMapperTest extends TestCase
 {
@@ -21,14 +21,14 @@ class ResponseMapperTest extends TestCase
         $phpStanOutput = [
             'totals' => ['errors' => 0, 'file_errors' => 0],
             'files' => [],
-            'errors' => []
+            'errors' => [],
         ];
 
         $result = $this->mapper->mapToMcpResponse($phpStanOutput);
 
         $this->assertEquals([
             'files' => [],
-            'totalErrors' => 0
+            'totalErrors' => 0,
         ], $result);
     }
 
@@ -43,16 +43,16 @@ class ResponseMapperTest extends TestCase
                         [
                             'message' => 'Property is never read, only written.',
                             'line' => 42,
-                            'identifier' => 'property.onlyWritten'
+                            'identifier' => 'property.onlyWritten',
                         ],
                         [
                             'message' => 'Variable $test might not be defined.',
                             'line' => 15,
-                            'identifier' => 'variable.undefined'
-                        ]
-                    ]
-                ]
-            ]
+                            'identifier' => 'variable.undefined',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $result = $this->mapper->mapToMcpResponse($phpStanOutput);
@@ -66,18 +66,18 @@ class ResponseMapperTest extends TestCase
                             'line' => 42,
                             'message' => 'Property is never read, only written.',
                             'identifier' => 'property.onlyWritten',
-                            'severity' => 'error'
+                            'severity' => 'error',
                         ],
                         [
                             'line' => 15,
                             'message' => 'Variable $test might not be defined.',
                             'identifier' => 'variable.undefined',
-                            'severity' => 'error'
-                        ]
-                    ]
-                ]
+                            'severity' => 'error',
+                        ],
+                    ],
+                ],
             ],
-            'totalErrors' => 2
+            'totalErrors' => 2,
         ];
 
         $this->assertEquals($expected, $result);
@@ -90,8 +90,8 @@ class ResponseMapperTest extends TestCase
         $expected = [
             'error' => [
                 'code' => -32602,
-                'message' => 'Test error message'
-            ]
+                'message' => 'Test error message',
+            ],
         ];
 
         $this->assertEquals($expected, $result);

@@ -1,0 +1,24 @@
+# Dependencies
+vendor/
+
+# Cache files
+.php-cs-fixer.cache
+.phpunit.cache/
+
+# Development notes (keep local)
+PLAN.md
+PROGRESS.md
+
+# Logs
+mcp.log
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

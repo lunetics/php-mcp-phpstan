@@ -3,7 +3,9 @@
 
 declare(strict_types=1);
 
-use PhpMcp\PhpStan\McpServer;
+use PhpMcp\Server\Defaults\StreamLogger;
+use PhpMcp\Server\Server;
+use PhpMcp\PhpStan\PhpStanMcpService;
 
 // Autoload dependencies
 $autoloadPaths = [
@@ -27,8 +29,18 @@ if ($autoloadPath === null) {
 require_once $autoloadPath;
 
 try {
-    $server = new McpServer();
-    $server->run();
+    $logFile = __DIR__ . '/../mcp.log';
+    $logger = new StreamLogger($logFile, 'debug');
+
+    $server = Server::make()
+        ->withBasePath(__DIR__ . '/..')
+        ->withLogger($logger)
+        ->withTool([PhpStanMcpService::class, 'analyzeCode'], 'phpstan_analyze')
+        ->discover();
+
+    $exitCode = $server->run('stdio');
+    exit($exitCode);
+    
 } catch (\Throwable $e) {
     fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
     exit(1);
